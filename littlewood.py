@@ -52,6 +52,8 @@ def output_chunk(f, chunk_type, data):
 
 print "writing out PNG..."
 
+hit_to_rgb = {}
+
 with open(filename, "wb") as f:
     f.write(struct.pack("8B", 137, 80, 78, 71, 13, 10, 26, 10))
     output_chunk(f, "IHDR", struct.pack("!2I5B", width, height, 8, 2, 0, 0, 0))
@@ -66,11 +68,14 @@ with open(filename, "wb") as f:
             hx = abs(px - width / 2)
             h = hits[hx, hy]
             if h > 0:
-                value = numpy.log(h) / log_max
-                r, g, b = colorsys.hsv_to_rgb(value / 4, 1 - value, 0.5 + value / 2)
-                data.extend([int(255 * r), int(255 * g), int(255 * b)])
+                r, g, b = hit_to_rgb.get(h, (None, None, None))
+                if r is None:
+                    value = numpy.log(h) / log_max
+                    r, g, b = (int(255 * x) for x in colorsys.hsv_to_rgb(value / 4, 1 - value, 0.5 + value / 2))
+                    hit_to_rgb[h] = (r, g, b)
             else:
-                data.extend([0, 0, 0])
+                r, g, b = 0, 0, 0
+            data.extend([r, g, b])
     compressed = compressor.compress(data.tostring())
     flushed = compressor.flush()
     output_chunk(f, "IDAT", compressed + flushed)
