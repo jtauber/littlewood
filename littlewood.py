@@ -16,14 +16,16 @@ import numpy
 parser = argparse.ArgumentParser()
 parser.add_argument("degree", help="the degree of the polynomials to use", type=int)
 parser.add_argument("size", help="the size of the image to produce", type=int)
+parser.add_argument("--verbose", help="increase output verbosity", action="store_true")
 args = parser.parse_args()
 
 
 DEGREE = args.degree
 SIZE = args.size
+VERBOSE = args.verbose
 
-
-print "generating roots for degree={}, size={}".format(DEGREE, SIZE)
+if VERBOSE:
+    print "generating roots for degree={}, size={}".format(DEGREE, SIZE)
 
 hits = numpy.zeros((int(SIZE * 2.1), int(SIZE * 1.5)), dtype=numpy.int)
 start = time.time()
@@ -35,7 +37,8 @@ next = click
 for poly in itertools.product(*([[-1, 1]] * DEGREE)):
     count += 1
     if count == next:
-        print count
+        if VERBOSE:
+            print count
         next += click
     for root in numpy.roots((1,) + poly):
         x, y = round(root.real * SIZE), round(root.imag * SIZE)
@@ -57,7 +60,8 @@ def output_chunk(f, chunk_type, data):
     f.write(struct.pack("!i", checksum))
 
 
-print "writing out PNG..."
+if VERBOSE:
+    print "writing out PNG..."
 
 hit_to_rgb = {}
 
@@ -67,8 +71,9 @@ with open(filename, "wb") as f:
     compressor = zlib.compressobj()
     data = array.array("B")
     for py in range(height):
-        if py % 100 == 0:
-            print py
+        if VERBOSE:
+            if py % 100 == 0:
+                print py
         hy = abs(py - height / 2)
         data.append(0)
         for px in range(width):
@@ -88,4 +93,5 @@ with open(filename, "wb") as f:
     output_chunk(f, "IDAT", compressed + flushed)
     output_chunk(f, "IEND", "")
 
-print "wrote out {} in {} seconds".format(filename, round(time.time() - start))
+if VERBOSE:
+    print "wrote out {} in {} seconds".format(filename, round(time.time() - start))
