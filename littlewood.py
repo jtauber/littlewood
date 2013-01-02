@@ -2,6 +2,7 @@
 
 # see https://thoughtstreams.io/jtauber/littlewood-fractals/
 
+import argparse
 import array
 import colorsys
 import itertools
@@ -12,8 +13,14 @@ import zlib
 import numpy
 
 
-DEGREE = 16
-SIZE = 200
+parser = argparse.ArgumentParser()
+parser.add_argument("degree", help="the degree of the polynomials to use", type=int)
+parser.add_argument("size", help="the size of the image to produce", type=int)
+args = parser.parse_args()
+
+
+DEGREE = args.degree
+SIZE = args.size
 
 
 print "generating roots for degree={}, size={}".format(DEGREE, SIZE)
